@@ -1,0 +1,28 @@
+parsed: N=256  K=2^140? True  tn/td = 3/10000000000000000000000000000000000000000  dn/dd = 82395317/100000000
+enclosures parsed: 256  (checker requires len = N: True)
+enclosure widths: {1} (all width 1 in units of 1/K = 2^-140: True)
+rows 1..255 are exactly (j*2^132 - 1, j*2^132): False
+row inequalities |N*e - j*K|*td <= tn*K for j=1..255, both endpoints: ALL PASS
+max implied |N*S(j) - j| over enclosure endpoints = 1.837e-40  (tau = 3/10000000000000000000000000000000000000000 = 3.0e-40; margin factor ~1.63x)
+edge bound |2*sumLo - K*N|*dd <= dn*2*K*N: True; sumHi version: True
+implied D(1) in [0.823953161, 0.823953161]  (claimed |D(1)| <= 0.82395317)
+S(256) ~= 211.432009 (from last enclosure; row check correctly skips j = N)
+p0 exact = 0.68182868746; header decimal 0.68182868746... OK; paper's rounded-up bound p0 <= 0.6818287: True
+
+RESULT: PASS - independent checker agrees with LawN256_check
+NOT verified here (data non-public): EnclOK itself - that the true form factor S of the
+law in cert_N256_blk_b128m.json lies in these enclosures. Requires the JSON from the authors.
+rows deviating from the exact grid pattern: 131 of 255
+  row 4: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 5: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 9: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 12: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 13: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 14: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 17: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 18: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 19: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 20: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 21: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  row 22: shifted by 1 units of 2^-140 (7.17e-43 in S)
+  ... and 119 more

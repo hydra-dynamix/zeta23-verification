@@ -1,0 +1,480 @@
+<title>Verifying zeta-23</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+
+<style>
+  :root {
+    --ground: #fcfcfd;
+    --surface: #f5f6f9;
+    --sunken: #eef0f4;
+    --ink: #13151c;
+    --muted: #5a6072;
+    --rule: #e3e4ec;
+    --accent: #125b60;
+    --accent-soft: #e4f0f0;
+    --good: #2c6b4f;
+    --warn: #96590a;
+
+    --display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --body: "IBM Plex Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d0f13;
+      --surface: #14171e;
+      --sunken: #101318;
+      --ink: #e9eaf0;
+      --muted: #969cae;
+      --rule: #242833;
+      --accent: #63c3c7;
+      --accent-soft: #14262a;
+      --good: #74c197;
+      --warn: #d9a441;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0d0f13;
+    --surface: #14171e;
+    --sunken: #101318;
+    --ink: #e9eaf0;
+    --muted: #969cae;
+    --rule: #242833;
+    --accent: #63c3c7;
+    --accent-soft: #14262a;
+    --good: #74c197;
+    --warn: #d9a441;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 4vw, 3rem) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+
+  .standfirst { font-size: clamp(1.0625rem, 2vw, 1.1875rem); color: var(--muted); max-width: 64ch; margin: 0; }
+  .standfirst a { color: var(--accent); text-underline-offset: 3px; }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.375rem, 3vw, 1.6875rem);
+    line-height: 1.2;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+
+  h3 { font-family: var(--body); font-weight: 600; font-size: 1rem; margin: 0; }
+
+  p { max-width: 68ch; margin: 0; }
+
+  section { display: flex; flex-direction: column; gap: 1.25rem; }
+  .marked { border-left: 2px solid var(--accent); padding-left: clamp(1rem, 2.5vw, 1.75rem); }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .metric { background: var(--surface); padding: 1.25rem 1.375rem; }
+  .metric .label { font-family: var(--mono); font-size: .6875rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: .5rem; }
+  .metric .value { font-family: var(--mono); font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; display: block; line-height: 1.1; }
+  .metric .note { font-size: .8125rem; color: var(--muted); display: block; margin-top: .375rem; }
+
+  /* evidence cards: registered -> transcript -> verdict */
+  .evidence { border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); overflow: hidden; }
+
+  .ev-head {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    gap: .75rem 1rem;
+    align-items: baseline;
+    padding: 1.125rem 1.375rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ev-head .idx { font-family: var(--mono); font-size: .8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ev-head .claim { font-size: .9375rem; font-weight: 500; }
+
+  .chip {
+    font-family: var(--mono); font-size: .6875rem; font-weight: 500;
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: .25rem .5rem; border-radius: 2px; white-space: nowrap;
+    border: 1px solid currentColor;
+  }
+  .chip.ok { color: var(--good); }
+  .chip.gap { color: var(--warn); }
+  .chip.new { color: var(--accent); }
+
+  @media (max-width: 36rem) {
+    .ev-head { grid-template-columns: 2rem 1fr; }
+    .ev-head .chip { grid-column: 2; justify-self: start; }
+  }
+
+  .ev-body { padding: 1.125rem 1.375rem; display: flex; flex-direction: column; gap: .875rem; }
+
+  .registered {
+    font-size: .8125rem;
+    color: var(--muted);
+    border-left: 2px solid var(--rule);
+    padding-left: .875rem;
+  }
+  .registered b { color: var(--ink); font-weight: 600; font-family: var(--mono); font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: .25rem; }
+
+  pre {
+    background: var(--sunken);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .875rem 1rem;
+    overflow-x: auto;
+    margin: 0;
+  }
+  pre, code { font-family: var(--mono); font-size: .75rem; line-height: 1.65; }
+  p code, li code, td code { background: var(--sunken); border: 1px solid var(--rule); border-radius: 2px; padding: .0625rem .25rem; font-size: .8125rem; }
+  .prompt, .cmt { color: var(--muted); }
+  .out { color: var(--good); }
+  .flag { color: var(--warn); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .8125rem; }
+  .scroller { overflow-x: auto; }
+  th, td { text-align: left; padding: .4375rem .75rem .4375rem 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+  th { font-family: var(--mono); font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td.mono, th.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  td.ok { color: var(--good); }
+
+  ul { max-width: 68ch; margin: 0; padding-left: 1.125rem; }
+  li { margin-bottom: .4375rem; }
+  li:last-child { margin-bottom: 0; }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1.5rem 2rem; }
+
+  .bignum { font-family: var(--mono); font-size: clamp(1.375rem, 4vw, 2rem); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.03em; color: var(--accent); margin: 0; overflow-wrap: anywhere; }
+  .fraction { font-family: var(--mono); font-size: .75rem; color: var(--muted); overflow-wrap: anywhere; display: block; }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.5rem; color: var(--muted); font-size: .875rem; display: flex; flex-direction: column; gap: 1rem; }
+  footer p { max-width: 72ch; }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+
+  <header>
+    <p class="eyebrow">Independent verification · 21 August 2026</p>
+    <h1>Verifying zeta-23</h1>
+    <p class="standfirst">
+      On 13 August 2026, Alpöge and Furman published <a href="https://arxiv.org/abs/2608.13637">a proof</a>,
+      found by an AI system and formalized in Lean 4, that more than two thirds of the nontrivial zeros of the
+      Riemann zeta function are simple and lie on the critical line. It is unrefereed and, so far as we can
+      determine, had no independent public verification. This is one — with the transcripts and the criteria
+      each check was registered against, rather than assurances.
+    </p>
+  </header>
+
+  <section>
+    <div class="metrics">
+      <div class="metric">
+        <span class="label">Theorems audited</span>
+        <span class="value">34 / 34</span>
+        <span class="note">Standard axioms only, sorry-free, on independent hardware</span>
+      </div>
+      <div class="metric">
+        <span class="label">Statement fidelity</span>
+        <span class="value">0</span>
+        <span class="note">Discrepancies across 15 definitions and 17 theorem statements</span>
+      </div>
+      <div class="metric">
+        <span class="label">Our public witness</span>
+        <span class="value">0.682435</span>
+        <span class="note">Certified ceiling, 6.06 × 10⁻⁴ from the paper's private one</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="marked">
+    <h2>How to read this</h2>
+    <p>
+      Each finding below shows three things: the hypothesis and pass/fail criteria that were written down
+      <em>before</em> the check ran, the verbatim output of the check, and the verdict. That ordering is the
+      point — a verification whose criteria are chosen after seeing the result isn't one. Every artifact was
+      checksummed when it was produced; the checksums are listed at the bottom and reproduced in the
+      repository.
+    </p>
+  </section>
+
+  <section class="marked">
+    <h2>Findings</h2>
+
+    <!-- 1 -->
+    <div class="evidence">
+      <div class="ev-head">
+        <span class="idx">01</span>
+        <span class="claim">The formalization builds from source, and all 34 headline theorems rest on the three standard Lean axioms.</span>
+        <span class="chip ok">Confirmed</span>
+      </div>
+      <div class="ev-body">
+        <div class="registered">
+          <b>Registered before running</b>
+          Pass: “<code>lake build</code> exits 0 with no sorries AND all PrintAxioms outputs list only the three
+          standard Lean axioms.” Fail: “build failure, any sorry, or any axiom beyond
+          propext / Classical.choice / Quot.sound.”
+        </div>
+        <pre><code><span class="cmt">$ lake env lean comparator/PrintAxioms.lean</span>
+'two_thirds_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'two_thirds_simple_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'five_sixths_distinct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_simple_on_critical_line_mult' depends on axioms: [propext, Classical.choice, Quot.sound]
+<span class="cmt">… 29 further declarations, identical …</span>
+'Zeta23.PairCeiling.LawN256_check' depends on axioms: [propext]
+'Zeta23.PairCeiling.LawN256_edge' does not depend on any axioms</code></pre>
+        <p style="font-size:.875rem">
+          Thirty-two declarations report exactly the three standard axioms; the last two are
+          <code>decide</code>-evaluated integer computations that need fewer, which is stronger rather than
+          weaker. No <code>sorryAx</code> appears anywhere — machine confirmation the development is
+          sorry-free. Toolchain resolved as pinned (Lean 4.33.0-rc2, Mathlib <code>51e6992e</code>); the only
+          anomaly in the whole transcript is one cosmetic unused-<code>simp</code>-argument warning.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="evidence">
+      <div class="ev-head">
+        <span class="idx">02</span>
+        <span class="claim">The 15 trusted definitions and 17 challenge statements say what the paper says. This is the part no kernel can check.</span>
+        <span class="chip ok">0 discrepancies</span>
+      </div>
+      <div class="ev-body">
+        <div class="registered">
+          <b>Registered before running</b>
+          Pass: “all 15 definitions and 17 statements judged faithful, with written justification per item.”
+          Fail: “any definition or statement found to encode a claim materially different from the paper's
+          informal statement.”
+        </div>
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr><th>Trusted item</th><th>Checked against</th><th class="mono">Verdict</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>zerosIn T₁ T₂</code></td><td>Half-open window <code>T₁ &lt; Im ρ ≤ T₂</code>, positive ordinates, open strip</td><td class="ok mono">faithful</td></tr>
+              <tr><td><code>zeroMult</code></td><td>Multiplicity as order of vanishing (<code>analyticOrderAt</code>)</td><td class="ok mono">faithful</td></tr>
+              <tr><td><code>Ncount</code> (denominator)</td><td>Counted <em>with</em> multiplicity; finiteness proved, not assumed</td><td class="ok mono">faithful</td></tr>
+              <tr><td><code>N0star</code> / <code>N0simple</code></td><td>Exact <code>Re ρ = 1/2</code>; simple ⇔ <code>zeroMult ρ = 1</code></td><td class="ok mono">faithful</td></tr>
+              <tr><td><code>cMT</code></td><td>= 0.7532960679; reciprocal matches ½+2<sup>−1/2</sup>cot(2<sup>−1/2</sup>) to &lt;10⁻¹⁴</td><td class="ok mono">faithful</td></tr>
+              <tr><td>7 Dirichlet mirrors</td><td>Same conventions against <code>DirichletCharacter.LFunction</code></td><td class="ok mono">faithful</td></tr>
+              <tr><td>17 challenge statements</td><td>ε–T₀ encoding of “liminf ≥ c”; multiplicity-weighted denominators</td><td class="ok mono">faithful</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:.875rem">
+          Two mechanical checks back the reading: the definitions inlined into the challenge module are
+          character-identical to the trusted layer, and the 17 statements in the solution module are
+          byte-identical to their trusted counterparts — so finding 01's axiom audit transfers to the trusted
+          statements. We probed the two places an encoding error could hide: the <code>∑ᶠ</code>/<code>ncard</code>
+          empty-on-infinite conventions (blocked on the denominator, where it would matter) and the
+          Montgomery–Taylor constant (verified numerically and algebraically). Full per-item table in the repository.
+        </p>
+      </div>
+    </div>
+
+    <!-- 3 + 4 -->
+    <div class="evidence">
+      <div class="ev-head">
+        <span class="idx">03</span>
+        <span class="claim">The certificate behind the ≈0.682 ceiling is not public, so its <code>EnclOK</code> hypothesis cannot be checked by anyone outside the authors.</span>
+        <span class="chip gap">Data gap</span>
+      </div>
+      <div class="ev-body">
+        <div class="registered">
+          <b>Registered before running</b>
+          Pass: “all recomputed values verifiably inside their claimed enclosures.”
+          Fail: “any recomputed enclosure verifiably violated.” <em>Outcome: inconclusive — the defining data
+          is not published, so the primary check could not be performed at all.</em>
+        </div>
+        <pre><code><span class="cmt">Zeta23/PairCeiling/LawN256.lean, file header:</span>
+DISPLAYED HYPOTHESIS downstream: EnclOK (that the true S lies in these enclosures)
+<span class="flag">— verified outside Lean by interval arithmetic;</span>
+everything downstream of the enclosures is kernel-checked (LawN256_check by decide +kernel).
+
+<span class="cmt">The law itself lives in a file that is in neither the repo nor the arXiv source:</span>
+cert_N256_blk_b128m.json
+sha256 cc3de9917db4d14d844630a4e97dda8387fd6e257e52b6967f430b8914584eb8
+<span class="cmt">— the repository README says of it: “available from the authors”.</span></code></pre>
+        <p style="font-size:.875rem">
+          The paper (§7.2), the source header above, and the repository README all state this accurately and
+          consistently; the finding is about <em>availability</em>, not disclosure. Its consequence is that the
+          ≈0.682 ceiling — unlike Theorems A–E — is not reproducible end to end by a third party.
+          <strong>The main theorems do not depend on any of this</strong>, as finding 01 confirms.
+        </p>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="evidence">
+      <div class="ev-head">
+        <span class="idx">04</span>
+        <span class="claim">Everything downstream of that hypothesis reproduces exactly under an independent implementation.</span>
+        <span class="chip ok">Confirmed</span>
+      </div>
+      <div class="ev-body">
+        <pre><code><span class="cmt">$ python independent_rowcheck.py …/LawN256.lean</span>
+parsed: N=256  K=2^140? True  tn/td = 3/10^40  dn/dd = 82395317/10^8
+enclosures parsed: 256  (checker requires len = N: True)
+<span class="out">row inequalities |N*e - j*K|*td &lt;= tn*K for j=1..255, both endpoints: ALL PASS</span>
+max implied |N*S(j) - j| = 1.837e-40  (tau = 3.0e-40; margin factor ~1.63x)
+<span class="out">edge bound |2*sumLo - K*N|*dd &lt;= dn*2*K*N: True; sumHi version: True</span>
+implied D(1) in [0.823953161, 0.823953161]  (claimed |D(1)| &lt;= 0.82395317)
+p0 exact = 0.68182868746; paper's rounded-up bound p0 &lt;= 0.6818287: True
+
+<span class="out">RESULT: PASS - independent checker agrees with LawN256_check</span></code></pre>
+        <p style="font-size:.875rem">
+          Written from the Lean semantics in Python with exact integer arithmetic, parsing the enclosure
+          integers straight from the source. One incidental observation supports the enclosures' provenance:
+          131 of the 255 rows deviate from the idealised grid value by exactly one unit in the last place
+          (2⁻¹⁴⁰), with irregular per-row rounding — the fingerprint of a real high-precision interval
+          computation rather than synthetic data.
+        </p>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="evidence">
+      <div class="ev-head">
+        <span class="idx">05</span>
+        <span class="claim">An independently constructed witness certifies the same kind of ceiling with every ingredient public.</span>
+        <span class="chip new">New artifact</span>
+      </div>
+      <div class="ev-body">
+        <p class="bignum">p = 0.682434924</p>
+        <span class="fraction">= 51563325002067556741923 / 75557863725914335723648 · τ = 1/5000 · 255 rows enclosed in 80-bit interval arithmetic</span>
+        <p style="font-size:.875rem">
+          A witness law <em>caps</em> the method class, so any feasible law gives a valid ceiling. Ours was built
+          from scratch by column generation over unrestricted configurations
+          (0.859793 → 0.795583 → 0.749218 → 0.682435), then certified with exact rational weights and rigorous
+          enclosures. It is slightly weaker than the paper's 0.681828687 — a higher ceiling is a less
+          informative one — but nothing in it is private, and checking it needs no search:
+        </p>
+        <pre><code><span class="cmt">$ python verify_law.py</span>
+enclosures:      256 (expect 256)
+declared tau:    1/5000 = 2.0e-04
+rows checked:    255 (both endpoints, exact rational arithmetic)
+<span class="out">band failures:   0</span>
+worst deviation: 1.000e-04  (file states 1.0000e-04)
+certified p:     0.682434924  = 51563325002067556741923/75557863725914335723648
+gap to p0:       +0.000606237  (positive = our ceiling is the weaker/higher one)
+
+<span class="out">RESULT: PASS - valid public witness at the declared tolerance</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="marked">
+    <h2>Artifact checksums</h2>
+    <p>Recorded when each artifact was produced, not assembled afterwards.</p>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Artifact</th><th class="mono">SHA-256 (first 16)</th></tr></thead>
+        <tbody>
+          <tr><td>Build + axiom-audit transcript</td><td class="mono">9477a915c14a2f91</td></tr>
+          <tr><td>Statement-fidelity audit report</td><td class="mono">ecfcd0c00c88630e</td></tr>
+          <tr><td>Paper-side reference extraction</td><td class="mono">0aaf9f5b385ec575</td></tr>
+          <tr><td>Independent row-certificate checker</td><td class="mono">ba60aa0b52add24b</td></tr>
+          <tr><td>Row-checker output</td><td class="mono">8c2d6e809cd2080e</td></tr>
+          <tr><td>Certified witness law</td><td class="mono">0b69a6544a2a5678</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="marked">
+    <h2>What this does and doesn't say</h2>
+    <div class="cols">
+      <div>
+        <h3>It establishes</h3>
+        <ul>
+          <li>The proofs check, on hardware unrelated to the authors'.</li>
+          <li>The formal statements mean what the paper says they mean.</li>
+          <li>The main theorems are provably independent of the unverifiable certificate.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>It does not</h3>
+        <ul>
+          <li>Make any new claim about the zeta function.</li>
+          <li>Certify the informal mathematics beyond what a kernel and a careful reading establish.</li>
+          <li>Claim our witness is optimal, or that the published ceiling is wrong — our construction is consistent with it.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="font-size:.875rem; color:var(--muted)">
+      Further limits, stated in the report: we did not re-run the external comparator tool (statement equality
+      was established by byte-identity plus a kernel-unfolding argument); the ξ′ and PairCeiling comparator
+      statements passed the axiom audit but their fidelity was outside our registered scope; and Mathlib's
+      semantics for <code>riemannZeta</code> and <code>analyticOrderAt</code> are trusted as the declared base.
+    </p>
+  </section>
+
+  <footer>
+    <p>
+      <strong>Disclosure.</strong> This verification was carried out with substantial AI assistance
+      (Claude, Anthropic) — the search, the certification pipeline, and the drafting. Every quantitative claim
+      here is machine-checkable from the published artifacts, and each reproduction command was executed. One
+      of the wider programme's own intermediate conclusions was refuted by an adversarial review we
+      commissioned against ourselves; the findings above are the ones that survived it. Stated explicitly per
+      the Leiden Declaration on AI and Mathematics rather than in a footnote.
+    </p>
+    <p>
+      <strong>Bryan Carson</strong>, Hydra Dynamix · <a href="mailto:bcarson@hydradynamix.com">bcarson@hydradynamix.com</a><br>
+      Conducted as a pre-registered programme in <a href="https://ldgr.run">LDGR</a>: criteria written and
+      stored before each experiment ran, results recorded against them, artifacts checksummed on creation.
+      Later experiments in the programme additionally freeze a hash of the registered definition so that
+      post-hoc edits are detectable; the four experiments above predate that feature and are pre-registered
+      without it.<br>
+      Verification artifacts and code released under Apache-2.0, matching the audited repository.
+    </p>
+  </footer>
+
+</div>

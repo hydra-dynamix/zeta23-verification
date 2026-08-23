@@ -1,0 +1,200 @@
+# Independent verification of *zeta-23*, and a public witness for its bandwidth-one ceiling
+
+**Technical note.** Bryan Carson, Hydra Dynamix (<bcarson@hydradynamix.com>).
+Verification performed 19–21 August 2026 on commodity hardware (Windows x86-64).
+Subject: Alpöge–Furman, *More than two thirds of the zeta zeros are simple and on the critical line*,
+arXiv:2608.13637, with formalization at `anthropics/zeta-23-lean`.
+
+---
+
+## 1. Scope
+
+The paper proves, unconditionally, that at least ⅔ — and with the Montgomery–Taylor window at least
+0.67250… — of the nontrivial zeros of ζ are simple and lie on the critical line, together with a 5/6
+distinctness bound and analogues for primitive Dirichlet *L*-functions and for ξ′. The proof was
+discovered by an AI system and is verified in Lean 4; the authors verified and communicated it.
+
+At the time of writing the result is eleven days old, has no journal referee report, and — so far as our
+searches determine — no independent public verification. This note supplies one, in three parts:
+
+1. **mechanical verification**: does the formalization build, and do its theorems rest only on standard axioms?
+2. **statement fidelity**: do the formal statements mean what the paper claims? (A Lean proof is worthless
+   if its statements encode the wrong theorem; this is the part no kernel can check.)
+3. **the ceiling certificate**: §7.2's ~0.682 upper bound on the whole method class rests on numerical data.
+   Is that data verifiable?
+
+Part 3 produced a data-availability finding, which in turn motivated the construction of an independent
+public witness (§5).
+
+## 2. Mechanical verification
+
+Toolchain installed from scratch (elan 4.2.3); the repository pins Lean `4.33.0-rc2` and Mathlib
+`51e6992efd06126df61a496bebf8f49482a4e129`, both of which resolved and built without modification.
+Total wall-clock ≈ 26 minutes: Mathlib cache (8 681 files), `lake build`, `lake build Solution
+Solution.XiPrime`, and the three axiom audits.
+
+Result: **all 34 headline declarations audit clean.** Thirty-two report exactly
+`[propext, Classical.choice, Quot.sound]`; `Zeta23.PairCeiling.LawN256_check` reports `[propext]` alone and
+`LawN256_edge` reports no axioms at all (both are `decide`-evaluated integer computations, so this is
+expected and stronger, not weaker). No `sorryAx` appears anywhere, which is machine confirmation that the
+development is sorry-free. The only anomaly in the entire build transcript is one cosmetic
+`unused simp argument` warning at `Zeta23/XiPrime/Transfer.lean:718`.
+
+This confirms the repository's own audit claims on independent hardware. Transcript: `audit/build-summary.txt`.
+
+## 3. Statement fidelity
+
+The repository concentrates its human-judgment surface deliberately: `comparator/ChallengeDeps.lean`
+holds **15 definitions** built from Mathlib alone, and `comparator/Challenge.lean` holds **17 theorem
+statements**; everything else is machine-verified against those. We audited all 32 items against the paper.
+
+**Verdict: faithful, 0 discrepancies.** Full per-item table in `audit/statement-fidelity-audit.md`. Salient points:
+
+- Counting conventions match the paper exactly: half-open windows `T₁ < Im ρ ≤ T₂`, positive ordinates
+  (not `|Im ρ|`), open critical strip, multiplicity via Mathlib's `analyticOrderAt`, exact `Re ρ = 1/2`
+  for on-line, `zeroMult ρ = 1` for simple, and multiplicity-weighted denominators throughout.
+- Mechanical checks: the definitions inlined into `Challenge.lean` are character-identical to
+  `ChallengeDeps.lean`; the 17 statements in `Solution.lean` are byte-identical (modulo whitespace) to
+  their trusted counterparts, so the axiom audit of §2 transfers to the trusted statements.
+- We specifically probed the two places a subtle encoding error could hide. First, the `∑ᶠ`/`ncard`
+  conventions return 0 on infinite sets — but finiteness of zeros in a window is provable and proved
+  solution-side, and the dangerous direction (an infinite reading trivializing the claim) can only occur
+  on the *denominator*, where it is blocked. Second, the Montgomery–Taylor constant: `cMT` evaluates to
+  0.7532960679, its reciprocal to 1.3274992963, agreeing with the closed form ½ + 2^(−1/2)cot(2^(−1/2)) to
+  better than 10⁻¹⁴, and yielding proportions 0.6725007 and 0.8362504 — the paper's stated 0.67250… and
+  0.83625….
+- The headline claim of the paper is precisely `montgomery_taylor_simple_on_critical_line_mult`, and its
+  ε–T₀ encoding of "liminf ≥ c" is the standard and correct one.
+
+Coverage direction is one-way in the safe sense: every formal statement is a claim the paper makes; a few
+claims the paper makes (e.g. some cumulative Montgomery–Taylor variants) are not formalized. Omissions
+cannot inflate the result.
+
+## 4. The ceiling certificate: a data-availability gap
+
+Section 7.2 bounds the *entire* bandwidth-one certificate class at ≈ 0.6819 by exhibiting an extremal
+256-periodic law with simple-point fraction
+
+    p₀ = 10909258999421303588095230195816054408197 / (16 · 10³⁹) = 0.68182868746…
+
+The Lean theorem `ceiling_law256` takes a hypothesis `EnclOK`: that the true form factor of that law lies
+inside the published integer enclosures. **`EnclOK` is not proved in Lean.** The paper says so plainly
+(§7.2: the enclosures "are certified by interval arithmetic and are *not* checked by the Lean kernel"), and
+so does the source file header of `Zeta23/PairCeiling/LawN256.lean`.
+
+The repository README documents this accurately: it states the enclosures were "obtained outside Lean by
+interval arithmetic from an exact-rational certificate … available from the authors", and that "everything
+downstream of the enclosures … is checked in the kernel by `decide`". The issue is availability of the certificate,
+not disclosure of its status.
+
+The substantive issue is that the law itself — the weights, positions and marks whose form factor `EnclOK`
+asserts — lives in `cert_N256_blk_b128m.json`
+(sha256 `cc3de9917db4d14d844630a4e97dda8387fd6e257e52b6967f430b8914584eb8`), which is **not in the
+repository and not in the arXiv source** (25 KB, LaTeX only); the paper states it is available from the
+authors. Consequently **no one outside the authors can currently verify `EnclOK`**, and the ~0.682 ceiling
+— unlike Theorems A–E — is not publicly reproducible end to end.
+
+**What we could check, we did.** We re-implemented the row-certificate semantics of `RowCert.lean`
+independently in Python with exact integer arithmetic (`audit/independent_rowcheck.py`, no dependencies),
+parsing the enclosure integers directly from the Lean source. All checks agree with Lean's kernel evaluation:
+
+- all **255** row inequalities pass at *both* endpoints, with margin factor 1.63 against τ = 3 × 10⁻⁴⁰
+  (largest implied |256·S(j) − j| = 1.837 × 10⁻⁴⁰);
+- both edge-bound checks pass; the implied D(1) lies in [0.823953161, 0.823953161], inside the claimed
+  0.82395317;
+- the exact rational p₀ matches its published decimal and the paper's rounded bound p₀ ≤ 0.6818287.
+
+One incidental observation supports the enclosures' provenance: 131 of the 255 rows deviate from the
+idealised grid value j·2¹³² by exactly one unit in the last place (2⁻¹⁴⁰), with irregular per-row rounding
+— the fingerprint of a genuine high-precision interval computation rather than synthetic data.
+
+**We emphasise: Theorems A–E do not depend on any of this.** Our axiom audit (§2) confirms the main
+theorems carry no such hypothesis. The gap concerns only the meta-theorem bounding the method class.
+
+## 5. An independent public witness for the ceiling
+
+Because a witness law *caps* the method class, any feasible law yields a valid ceiling; a law with a
+smaller simple fraction yields a tighter one. We therefore constructed our own from scratch, so that the
+ceiling statement can be verified by anyone.
+
+**Formulation.** A witness is a finitely supported probability law over 256-periodic marked configurations
+whose grid form factor S satisfies the near-CUE row conditions |256·S(j) − j| ≤ τ for 1 ≤ j ≤ 255 (row 256
+free), with the ceiling value equal to the law's expected simple-point fraction. The Lean machinery
+(`checkRows`, `cert_of_checkRows`, `ceiling_nearCUE`) is generic over the certificate data, so a witness in
+this format is consumed by the *same kernel-checked pipeline* the paper uses.
+
+**Search.** Structured algebraic families (equally spaced combs with quarter- and sixth-period offsets;
+Ramanujan-orbit bundles giving exactly integer rows) plateau at p = 0.793422 — an empirical floor we
+document as a negative result: such quantized-amplitude families cannot carry more than ≈ 20 % doubled
+mass against the CUE ramp, against ≈ 32 % at the optimum. Dropping the self-imposed rationality
+requirement — certification needs rigorous *enclosures*, not rational rows — and running column generation
+over unrestricted positions with a dual-guided pricing oracle produced the descent
+
+    0.859793 → 0.851778 → 0.795583 → 0.793422 (algebraic floor) → 0.749218 → 0.688373 → 0.684717 → 0.682435.
+
+**Certification.** Final positions are snapped to a dyadic 2⁻²⁰ grid (cost 6 × 10⁻⁸), weights are exact
+rationals summing to 1, and every row is enclosed by 80-bit interval arithmetic with endpoints converted
+to exact fractions by binary mantissa/exponent decomposition. All 255 bands verify with worst deviation
+1.0 × 10⁻⁴ against a declared τ = 1/5000. The certified value is the exact rational
+
+    p = 51563325002067556741923 / 75557863725914335723648 = 0.682434924…,
+
+i.e. **6.06 × 10⁻⁴ above the paper's p₀** — a slightly weaker but fully public ceiling. Integer enclosures
+at scale K = 2⁶⁰ are emitted in `RowCertData` format in `witness/law_certified.txt`, ready for the
+repository's own kernel checker.
+
+To our knowledge this is the only witness of this kind whose every ingredient is publicly available.
+
+## 6. Adversarial review of our own work
+
+Each numerical component was validated against a brute-force reference before use. This caught two sign
+errors during development (an FFT-constructed kernel derivative, and a conjugate-bin placement in a field
+computation) that would otherwise have degraded search quality while producing plausible-looking output.
+
+More significantly: this verification is part of a larger programme, and one of that programme's own
+intermediate conclusions — a claimed unconditional third-moment separation — was **refuted by an
+adversarial review we commissioned against ourselves**, on two independent grounds (the Rudnick–Sarnak
+correlation theorem assumes RH; and the test kernel violated its ℓ¹ admissibility condition, so most of the
+apparent effect was inadmissible content). We mention this because it calibrates the rest: the findings in
+this note are the ones that survived that process, and each is mechanically checkable rather than
+argumentative.
+
+## 6a. Provenance
+
+The work was run as a pre-registered programme in [LDGR](https://ldgr.run) (`ldgr-research`): each experiment
+was registered with explicit pass/fail criteria before execution, verdicts were recorded against a frozen hash
+of the registered definition (so post-hoc reinterpretation is detectable), and artifacts were checksummed on
+creation. §2 is experiment `zeta23-exp1`, §3 is `zeta23-exp2`, §4 is `zeta23-exp3`, §5 is `zeta23-exp7`. The
+refutation described in §6 was itself a registered adversarial experiment whose `pass` verdict automatically
+marked the attacked claim contested.
+
+## 7. Limitations
+
+- We did not run the external `leanprover/comparator` tool itself. Statement equality between the trusted
+  and solution modules was established by textual byte-identity plus the kernel-unfolding argument of §3.
+  Running the tool would close this small residual.
+- We audited the 15 definitions and 17 statements. The ξ′ (6) and PairCeiling (11) comparator statements
+  passed the axiom audit but their *fidelity* was outside our registered scope.
+- Mathlib's semantics for `riemannZeta`, `DirichletCharacter.LFunction` and `analyticOrderAt` are trusted
+  as the declared base.
+- Our witness (§5) is weaker than the paper's by 6 × 10⁻⁴; column generation is a heuristic search, so the
+  law is not claimed optimal. Its *certification*, however, is rigorous and deterministic.
+- The paper-side reference used during the fidelity audit was extracted from the PDF, which mangles some
+  mathematics; every reconstructed item was resolved against the Lean source or the arXiv LaTeX source
+  before use (`audit/paper-reference-extraction.md` carries the ambiguity ledger).
+
+## 8. What we do not claim
+
+We make no new claim about ζ. We do not claim the paper is correct beyond what a kernel and a careful
+reading establish: our audit shows the proofs check and the statements say what the paper says, not that
+the informal mathematics is free of conceptual error. We do not claim our witness is optimal, nor that the
+0.682 ceiling is wrong — our independent construction is consistent with it, and everything we found about
+the published enclosures (§4) indicates a genuine computation.
+
+## References
+
+- L. Alpöge, R. Furman, *More than two thirds of the zeta zeros are simple and on the critical line*, arXiv:2608.13637.
+- `anthropics/zeta-23-lean` (Apache-2.0), tag v1.0.
+- E. Carneiro, V. Chandee, F. Littmann, M. Milinovich, *Hilbert spaces and the pair correlation of zeros*, arXiv:1406.5462.
+- H. L. Montgomery, *The pair correlation of zeros of the zeta function*, Proc. Sympos. Pure Math. 24 (1973).
+- Leiden Declaration on AI and Mathematics, June 2026.

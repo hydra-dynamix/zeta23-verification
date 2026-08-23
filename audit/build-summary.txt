@@ -1,0 +1,46 @@
+=== STAGE 1: lake exe cache get ===
+STAGE1_EXIT=0
+=== STAGE 2: lake build ===
+STAGE2_EXIT=0
+=== STAGE 3: lake build Solution Solution.XiPrime ===
+STAGE3_EXIT=0
+=== STAGE 4: axiom audits ===
+AUDIT1_EXIT=0
+=== STAGE 4: axiom audits ===
+'two_thirds_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'two_thirds_on_critical_line_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'two_thirds_simple_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'two_thirds_simple_on_critical_line_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'five_sixths_distinct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'five_sixths_distinct_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_simple_on_critical_line_mult' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_simple_on_critical_line_mult_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_distinct_mult' depends on axioms: [propext, Classical.choice, Quot.sound]
+'montgomery_taylor_distinct_mult_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_two_thirds_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_two_thirds_simple_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_five_sixths_distinct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_montgomery_taylor_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_montgomery_taylor_simple_on_critical_line_mult' depends on axioms: [propext, Classical.choice, Quot.sound]
+'dirichlet_montgomery_taylor_distinct_mult' depends on axioms: [propext, Classical.choice, Quot.sound]
+AUDIT1_EXIT=0
+'xiPrime_zeros_in_open_critical_strip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'xiPrime_over_xi_re_pos' depends on axioms: [propext, Classical.choice, Quot.sound]
+'xiPrime_simple_zeros_on_critical_line' depends on axioms: [propext, Classical.choice, Quot.sound]
+'xiPrime_simple_zeros_on_critical_line_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+'xiPrime_simple_zeros_on_critical_line_quartic' depends on axioms: [propext, Classical.choice, Quot.sound]
+'xiPrime_simple_zeros_on_critical_line_quartic_cumulative' depends on axioms: [propext, Classical.choice, Quot.sound]
+AUDIT2_EXIT=0
+'Zeta23.PairCeiling.ceiling_stability' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_nearCUE' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.lawN256_rows' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_law256' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_law256_decimal' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_signed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_nearCUE_signed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_law256_signed' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.D1_nonneg_of_edgeNonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.LawN256_check' depends on axioms: [propext]
+'Zeta23.PairCeiling.LawN256_edge' does not depend on any axioms
+AUDIT3_EXIT=0
