@@ -2,11 +2,21 @@
 
 This repository contains an independent third-party verification of the results of
 
-> L. Alpöge and R. Furman, *More than two thirds of the zeta zeros are simple and on the critical line*, arXiv:2608.13637 (submitted 13 August 2026), with Lean 4 formalization at [`anthropics/zeta-23-lean`](https://github.com/anthropics/zeta-23-lean),
+> L. Alpöge and R. Furman, *More than two thirds of the zeta zeros are simple and on the critical line*, arXiv:2608.13637v1 (submitted 13 August 2026; a v2 dated 19 August 2026 adds provenance and extension material without altering the main theorems — this report audits v1), with Lean 4 formalization at [`anthropics/zeta-23-lean`](https://github.com/anthropics/zeta-23-lean),
 
 together with an independently constructed, fully public **witness law** for the paper's bandwidth-one ceiling.
 
 Everything here is reproducible from public materials. We introduce no new claims about the Riemann zeta function.
+
+**Prior work.** We are not the first to check parts of this. An independent kernel rebuild and axiom audit
+was published by [`stevemoraco/qs` PR #363](https://github.com/stevemoraco/qs/pull/363) on 13 August 2026,
+and an independent reproduction of the ceiling data from the published enclosures by
+[`teal-sea/zeta-lab` PR #12](https://github.com/teal-sea/zeta-lab/pull/12) on 11 August 2026 — the latter
+obtaining the same digits we did. The `EnclOK` availability gap was raised in repository issues
+[#8](https://github.com/anthropics/zeta-23-lean/issues/8) and
+[#14](https://github.com/anthropics/zeta-23-lean/issues/14), both still open. Findings 1, 3 and 4 below
+therefore corroborate work others published first. What is new here is finding 2 — a statement-fidelity
+audit, which no other effort has attempted — and finding 5, an independently constructed witness.
 
 **Author:** Bryan Carson, Hydra Dynamix — <bcarson@hydradynamix.com>
 **Date:** 21 August 2026
@@ -21,14 +31,16 @@ Everything here is reproducible from public materials. We introduce no new claim
 | 4 | The integer certificate layer downstream of `EnclOK` (255 row inequalities, edge bound, p₀ arithmetic) reproduces exactly under an independent implementation | **Confirmed** |
 | 5 | An independently constructed witness law certifies a bandwidth-one ceiling of **p = 0.682434924**, within **6.1 × 10⁻⁴** of the paper's p₀ = 0.681828687 — with every link publicly reproducible | **New artifact** |
 
-Findings 1, 2 and 4 support the paper. Finding 3 concerns reproducibility of one auxiliary section, not the correctness of the main theorems — **Theorems A–E are provably independent of the certificate in question**, as our axiom audit confirms. The repository's README and the paper both document the certificate's status accurately; the gap is availability, not disclosure.
+Findings 1, 2 and 4 support the paper (1 and 4 independently corroborating earlier third-party checks; see *Prior work* above). Finding 3 concerns reproducibility of one auxiliary section, not the correctness of the main theorems — **Theorems A–E are provably independent of the certificate in question**, as our axiom audit confirms. The repository's README and the paper both document the certificate's status accurately; the gap is availability, not disclosure.
 
 
 ## Why finding 5 matters
 
 The paper's §7.2 shows that no *bandwidth-one certificate* — the entire method class its main theorem belongs to — can prove more than ≈ 0.6819 of zeros simple and on the critical line. That upper bound is established by exhibiting a witness law: a configuration law matching the pair-correlation data zeta is known to have, but containing only p₀ = 68.18% simple zeros.
 
-That witness rests on a certificate file which is not distributed (finding 3). Our witness is different: it is built from scratch, its positions and weights are in this repository, and its form-factor enclosures are certified by interval arithmetic that anyone can re-run. It is very slightly weaker (0.682435 vs 0.681829 — a higher ceiling is a less informative one), but it is, to our knowledge, **the only fully public witness of this kind**.
+That witness rests on a certificate file which is not distributed (finding 3). Our witness is different: it is built from scratch, its positions and weights are in this repository, and its form-factor enclosures are certified by interval arithmetic that anyone can re-run. It is very slightly weaker (0.682435 vs 0.681829 — a higher ceiling is a less informative one), but it is, to our knowledge, **the only independently constructed witness of this kind**: the prior
+reproduction cited above re-checked the authors' own published enclosures, whereas this law was built from
+scratch and certified without reference to their certificate.
 
 ## Layout
 
@@ -95,8 +107,10 @@ the enclosures and the exact rational p can be re-verified from that file alone.
 
 The verification was conducted as a pre-registered research programme in
 [LDGR](https://ldgr.run) (`ldgr-research`), an evidence ledger for bounded, falsifiable experiments.
-Every experiment in this report was registered with its pass/fail criteria *before* it ran, each result was
-recorded against a frozen hash of those criteria, and every artifact was checksummed at creation. The
+Every experiment in this report was registered with its pass/fail criteria *before* it ran, and every
+artifact was checksummed at creation. (Later experiments in the programme additionally freeze a
+cryptographic hash of the registered definition so that post-hoc edits are detectable; the experiments
+behind this report predate that feature and are pre-registered without it.) The
 findings above correspond to experiments `zeta23-exp1` (build and axioms), `zeta23-exp2` (statement
 fidelity), `zeta23-exp3` (the `EnclOK` gap and the independent integer check), and `zeta23-exp7` (the
 witness). Ledger records are available on request.

@@ -3,7 +3,10 @@
 **Technical note.** Bryan Carson, Hydra Dynamix (<bcarson@hydradynamix.com>).
 Verification performed 19–21 August 2026 on commodity hardware (Windows x86-64).
 Subject: Alpöge–Furman, *More than two thirds of the zeta zeros are simple and on the critical line*,
-arXiv:2608.13637, with formalization at `anthropics/zeta-23-lean`.
+**arXiv:2608.13637v1**, with formalization at `anthropics/zeta-23-lean`. A v2 (19 August 2026) adds a
+provenance appendix, a ξ′ remark, and a family-averaging extension (Remark 7.2, giving 0.811 simple-on-line,
+explicitly *not* covered by the Lean formalisation); the main theorems and constants are byte-identical
+between versions. This report audits v1.
 
 ---
 
@@ -14,8 +17,12 @@ The paper proves, unconditionally, that at least ⅔ — and with the Montgomery
 distinctness bound and analogues for primitive Dirichlet *L*-functions and for ξ′. The proof was
 discovered by an AI system and is verified in Lean 4; the authors verified and communicated it.
 
-At the time of writing the result is eleven days old, has no journal referee report, and — so far as our
-searches determine — no independent public verification. This note supplies one, in three parts:
+At the time of writing the result has no journal referee report and no completed independent verification.
+Parts of it have been checked publicly by others: an independent kernel rebuild and axiom audit
+(`stevemoraco/qs` PR #363, 13 Aug), an independent reproduction of the ceiling data from the published
+enclosures (`teal-sea/zeta-lab` PR #12, 11 Aug, agreeing with our digits), and two open issues raising the
+`EnclOK` availability gap (#8, #14). None of those is a statement-level audit, and none constructs an
+independent witness. This note supplies both, alongside corroboration of the earlier checks, in three parts:
 
 1. **mechanical verification**: does the formalization build, and do its theorems rest only on standard axioms?
 2. **statement fidelity**: do the formal statements mean what the paper claims? (A Lean proof is worthless
