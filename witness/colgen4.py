@@ -1,4 +1,4 @@
-"""exp7 pricer v3: field-based GLOBAL coordinate descent.
+"""Pricer: field-based global coordinate descent.
 
 For config (x, m) and kernel K(d) = sum_j q_j cos(2 pi j d/256):
   field phi(t) = sum_i m_i K(t - x_i) on the full grid via one inverse FFT of the

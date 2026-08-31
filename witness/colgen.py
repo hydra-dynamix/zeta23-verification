@@ -1,4 +1,4 @@
-"""exp7: column generation over unrestricted positions (LDGR run 8).
+"""Column generation over unrestricted positions.
 
 Config = (positions x_i in [0,256), marks m_i in {1,2}), sum m_i = 256.
 Rows F(j) = |sum_i m_i e(j x_i/256)|^2, j=1..255. No rationality constraint during

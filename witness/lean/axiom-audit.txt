@@ -1,0 +1,3 @@
+'Zeta23.PairCeiling.LawHD256_check' depends on axioms: [propext]
+'Zeta23.PairCeiling.lawHD256_rows' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Zeta23.PairCeiling.ceiling_lawHD256' depends on axioms: [propext, Classical.choice, Quot.sound]

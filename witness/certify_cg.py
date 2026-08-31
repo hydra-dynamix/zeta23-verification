@@ -1,4 +1,4 @@
-"""exp7 certification: dyadic snap + exact weights + rigorous interval enclosures.
+"""Earlier certification pass (superseded by certify2.py): dyadic snap + interval enclosures.
 
 Pipeline:
  1. load cg_cols.pkl; solve float master (tau_solve = 0.009, tightened)

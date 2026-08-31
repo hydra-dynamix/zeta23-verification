@@ -29,18 +29,50 @@ audit, which no other effort has attempted — and finding 5, an independently c
 | 2 | All **15** trusted definitions and **17** challenge statements faithfully encode the paper's informal claims | **Confirmed, 0 discrepancies** |
 | 3 | The numerical certificate behind the ~0.682 ceiling (`cert_N256_blk_b128m.json`) is **not public**, so `EnclOK` cannot be verified by anyone outside the authors | **Data-availability gap** |
 | 4 | The integer certificate layer downstream of `EnclOK` (255 row inequalities, edge bound, p₀ arithmetic) reproduces exactly under an independent implementation | **Confirmed** |
-| 5 | An independently constructed witness law certifies a bandwidth-one ceiling of **p = 0.682434924**, within **6.1 × 10⁻⁴** of the paper's p₀ = 0.681828687 — with every link publicly reproducible | **New artifact** |
+| 5 | An independently constructed witness law certifies a bandwidth-one ceiling of **p = 0.681810782**, **below** the paper's p₀ = 0.681828687 by **1.79 × 10⁻⁵** — at the paper's own edge bound, with every link publicly reproducible | **New artifact** |
+| 6 | That witness is **verified in the Lean kernel** by instantiating the paper's own generic ceiling theorem, on the same three standard axioms and with no `sorry` — the first machine-checked bandwidth-one ceiling derived from a *public* certificate | **New artifact** |
 
 Findings 1, 2 and 4 support the paper (1 and 4 independently corroborating earlier third-party checks; see *Prior work* above). Finding 3 concerns reproducibility of one auxiliary section, not the correctness of the main theorems — **Theorems A–E are provably independent of the certificate in question**, as our axiom audit confirms. The repository's README and the paper both document the certificate's status accurately; the gap is availability, not disclosure.
 
 
-## Why finding 5 matters
+## Why findings 5 and 6 matter
 
-The paper's §7.2 shows that no *bandwidth-one certificate* — the entire method class its main theorem belongs to — can prove more than ≈ 0.6819 of zeros simple and on the critical line. That upper bound is established by exhibiting a witness law: a configuration law matching the pair-correlation data zeta is known to have, but containing only p₀ = 68.18% simple zeros.
+The paper's §7.2 shows that no *bandwidth-one certificate* — the entire method class its main theorem
+belongs to — can prove more than ≈ 0.6819 of zeros simple and on the critical line. That upper bound is
+established by exhibiting a witness law: a configuration law matching the pair-correlation data zeta is
+known to have, but containing only p₀ = 68.18% simple zeros.
 
-That witness rests on a certificate file which is not distributed (finding 3). Our witness is different: it is built from scratch, its positions and weights are in this repository, and its form-factor enclosures are certified by interval arithmetic that anyone can re-run. It is very slightly weaker (0.682435 vs 0.681829 — a higher ceiling is a less informative one), but it is, to our knowledge, **the only independently constructed witness of this kind**: the prior
-reproduction cited above re-checked the authors' own published enclosures, whereas this law was built from
-scratch and certified without reference to their certificate.
+That witness rests on a certificate file which is not distributed (finding 3). Ours is different in two
+ways.
+
+**It is lower.** Our certified value is p = 0.681810782, below the paper's p₀ = 0.681828687 by
+1.79 × 10⁻⁵. A *lower* witness is a *stronger* result: it shows the method class is more limited than
+the published witness alone establishes. It satisfies the paper's own edge bound |D(1)| ≤ 0.82395317
+(we measure 0.823950881), so the two ceiling statements differ only in the band tolerance τ — ours
+1/10⁷, theirs 3/10⁴⁰ — which moves the downstream error constant by 1.95 × 10⁻¹⁰, four orders below
+the improvement.
+
+**It is checkable.** Every position, weight and enclosure is in this repository. The certification is
+exact-rational and interval-arithmetic; `witness/verify_law.py` re-checks it from the artifact alone in
+seconds with no dependencies. And `witness/lean/` instantiates the paper's *own* generic ceiling theorem
+(`ceiling_nearCUE`) on our law, so the ceiling is verified by Lean's kernel rather than by our Python:
+
+```
+LawHD256_check     depends on axioms: [propext]
+lawHD256_rows      depends on axioms: [propext, Classical.choice, Quot.sound]
+ceiling_lawHD256   depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+— the same axiom profile as the paper's `ceiling_law256`, no `sorry`, no added hypotheses.
+`LawHD256_check` passes by `decide +kernel` on `propext` alone, meaning Lean re-verified all 256 row
+enclosures and both edge-bound inequalities as integer arithmetic. Because the paper's certificate file
+is not distributed, its `EnclOK` cannot be discharged by anyone outside the authors; this is, to our
+knowledge, the first kernel-verified bandwidth-one ceiling obtained from a public certificate.
+
+**What this is not.** This is a *ceiling* on a method class, not a lower bound on the proportion of
+zeros. It does **not** improve the paper's 67.25% result, which would require a better certificate
+rather than a better witness. What it does is tighten the published obstruction and make it
+independently verifiable.
 
 ## Layout
 
@@ -85,18 +117,31 @@ self-contained, so a skeptical reader never has to re-run the search:
 
 ```sh
 cd witness && python verify_law.py        # exact rational arithmetic, no dependencies
-# -> 255 rows checked, 0 band failures, certified p = 0.682434924, gap to p0 = +0.000606237
+# -> 255 rows checked, 0 band failures, certified p = 0.681810782,
+#    gap to p0 = -0.000017906 (BELOW p0), edge bound OK
 ```
 
-Regenerating the law from scratch (hours, stochastic):
+Regenerating the law from scratch (many hours, stochastic):
 
 ```sh
 pip install numpy scipy mpmath
 cd witness
-python colgen.py 150            # stage 1: column generation over free positions
-python colgen2.py 200           # stage 2: adds mark merge/split moves
-python colgen4.py 80 0.0001     # global-field pricer at tau = 1e-4
-python certify_cg.py cg_cols.pkl law_certified.txt 200 0.0001   # rigorous certification
+# column generation with dual stabilisation; the D(1) edge bound is carried in the master,
+# because E[F(256)] is a free direction for lowering p and an unconstrained solve drifts
+# above the paper's cap and produces an inadmissible law.
+python wholelaw_stab.py <state-tag> 60 12 3 5 0.15
+# rigorous certification: dyadic snap + exact rational weights + interval enclosures
+CERT_SNAP_BITS=44 CERT_PREC=260 python certify2.py <pool.pkl> law_certified.txt 1e-7 0.00000009
+```
+
+Re-checking the Lean ceiling (needs the paper's repository and its Mathlib cache):
+
+```sh
+git clone https://github.com/anthropics/zeta-23-lean && cd zeta-23-lean
+lake exe cache get
+cp ../witness/lean/LawHD256.lean ../witness/lean/CeilingLawHD256.lean Zeta23/PairCeiling/
+lake build Zeta23.PairCeiling.CeilingLawHD256
+lake env lean ../witness/lean/CeilingHD256.lean    # prints the axiom audit
 ```
 
 Column generation is stochastic; re-runs converge to nearby values rather than the identical law.

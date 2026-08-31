@@ -229,8 +229,8 @@
       </div>
       <div class="metric">
         <span class="label">Our public witness</span>
-        <span class="value">0.682435</span>
-        <span class="note">Certified ceiling, 6.06 × 10⁻⁴ from the paper's private one</span>
+        <span class="value">0.681811</span>
+        <span class="note">Certified ceiling, 1.79 × 10⁻⁵ <strong>below</strong> the paper's private one, and kernel-verified</span>
       </div>
     </div>
   </section>
@@ -390,25 +390,37 @@ p0 exact = 0.68182868746; paper's rounded-up bound p0 &lt;= 0.6818287: True
         <span class="chip new">New artifact</span>
       </div>
       <div class="ev-body">
-        <p class="bignum">p = 0.682434924</p>
-        <span class="fraction">= 51563325002067556741923 / 75557863725914335723648 · τ = 1/5000 · 255 rows enclosed in 80-bit interval arithmetic</span>
+        <p class="bignum">p = 0.681810782</p>
+        <span class="fraction">= 412129329181963620513241 / 604462909807282866662336 · τ = 1/10⁷ · 255 rows enclosed in 260-bit interval arithmetic</span>
         <p style="font-size:.875rem">
-          A witness law <em>caps</em> the method class, so any feasible law gives a valid ceiling. Ours was built
-          from scratch by column generation over unrestricted configurations
-          (0.859793 → 0.795583 → 0.749218 → 0.682435), then certified with exact rational weights and rigorous
-          enclosures. It is slightly weaker than the paper's 0.681828687 — a higher ceiling is a less
-          informative one — but nothing in it is private, and checking it needs no search:
+          A witness law <em>caps</em> the method class, so any feasible law gives a valid ceiling — and a
+          <em>lower</em> one is a <em>stronger</em> result. Ours was built from scratch by column generation over
+          unrestricted configurations (0.859793 → 0.795583 → 0.749218 → 0.682435 → 0.681811), then certified
+          with exact rational weights and rigorous enclosures. It sits <strong>below</strong> the paper's
+          0.681828687 by 1.79 × 10⁻⁵, satisfies the paper's own edge bound |D(1)| ≤ 0.82395317, and nothing
+          in it is private — checking it needs no search:
         </p>
         <pre><code><span class="cmt">$ python verify_law.py</span>
 enclosures:      256 (expect 256)
-declared tau:    1/5000 = 2.0e-04
+declared tau:    1/10000000 = 1.0e-07
 rows checked:    255 (both endpoints, exact rational arithmetic)
 <span class="out">band failures:   0</span>
-worst deviation: 1.000e-04  (file states 1.0000e-04)
-certified p:     0.682434924  = 51563325002067556741923/75557863725914335723648
-gap to p0:       +0.000606237  (positive = our ceiling is the weaker/higher one)
+worst deviation: 9.005e-08  (file states 9.0051e-08)
+certified p:     0.681810782  = 412129329181963620513241/604462909807282866662336
+<span class="out">gap to p0:       -0.000017906  (BELOW p0 - a strictly STRONGER ceiling than the published one)</span>
 
+D(1):            0.823950881  (bound 0.823953170, margin 2.289e-06)
+edge bound:      OK
 <span class="out">RESULT: PASS - valid public witness at the declared tolerance</span></code></pre>
+        <p style="font-size:.875rem">
+          And the ceiling itself is checked by Lean&rsquo;s kernel, by instantiating the paper&rsquo;s own generic
+          <code>ceiling_nearCUE</code> on our law &mdash; the same three standard axioms as the paper&rsquo;s
+          <code>ceiling_law256</code>, no <code>sorry</code>:
+        </p>
+        <pre><code><span class="cmt">$ lake env lean comparator/PrintAxioms/CeilingHD256.lean</span>
+<span class="out">LawHD256_check     depends on axioms: [propext]</span>
+lawHD256_rows      depends on axioms: [propext, Classical.choice, Quot.sound]
+ceiling_lawHD256   depends on axioms: [propext, Classical.choice, Quot.sound]</code></pre>
       </div>
     </div>
   </section>

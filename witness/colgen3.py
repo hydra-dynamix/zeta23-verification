@@ -1,4 +1,4 @@
-"""exp7 stage 5: fast CG — multiprocess pricing, FFT kernel, fat rounds, dual smoothing.
+"""Fast column generation: multiprocess pricing, FFT kernel, wide rounds, dual smoothing.
 Resumes from cg_cols.pkl. Optional tight-tau mode for the endgame polish:
     python colgen3.py <rounds> [tau]
 """

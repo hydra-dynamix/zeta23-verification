@@ -1,4 +1,4 @@
-"""record-exp8: extract the optimal bandwidth-one certificate (LP dual) from a CG snapshot.
+"""Extract the optimal bandwidth-one certificate (the LP dual) from a column-generation snapshot.
 
 The master LP:  min sigma.w  s.t.  A w <= j+tau, -A w <= -(j-tau), 1.w = 1, w >= 0
 Dual feasibility for every configuration c:  sigma_c + sum_j q_j F_c(j) + mu >= 0,

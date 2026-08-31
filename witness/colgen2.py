@@ -1,4 +1,4 @@
-"""exp7 stage 2: CG continuation with mark-move pricing (merge/split) + seeds.
+"""Stage 2: column generation with mark-move pricing (merge/split) and seeds.
 
 Resumes from cg_cols.pkl. Pricing now interleaves position flow with mark moves:
   merge: two mark-1 points -> one mark-2 at energy-optimal midpoint (sigma -= 2/256)

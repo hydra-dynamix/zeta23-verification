@@ -118,39 +118,67 @@ idealised grid value j·2¹³² by exactly one unit in the last place (2⁻¹⁴
 **We emphasise: Theorems A–E do not depend on any of this.** Our axiom audit (§2) confirms the main
 theorems carry no such hypothesis. The gap concerns only the meta-theorem bounding the method class.
 
-## 5. An independent public witness for the ceiling
+## 5. An independent public witness for the ceiling, below p₀ and kernel-verified
 
-Because a witness law *caps* the method class, any feasible law yields a valid ceiling; a law with a
-smaller simple fraction yields a tighter one. We therefore constructed our own from scratch, so that the
-ceiling statement can be verified by anyone.
+The paper's §7.2 bounds the whole bandwidth-one method class by exhibiting a witness law: a
+configuration law consistent with the pair-correlation data zeta is known to have, whose simple-point
+fraction is only p₀ = 0.681828687463832. No certificate in that class can prove more.
 
-**Formulation.** A witness is a finitely supported probability law over 256-periodic marked configurations
-whose grid form factor S satisfies the near-CUE row conditions |256·S(j) − j| ≤ τ for 1 ≤ j ≤ 255 (row 256
-free), with the ceiling value equal to the law's expected simple-point fraction. The Lean machinery
-(`checkRows`, `cert_of_checkRows`, `ceiling_nearCUE`) is generic over the certificate data, so a witness in
-this format is consumed by the *same kernel-checked pipeline* the paper uses.
+We constructed such a law independently, by column generation over marked configurations on Z/256
+with an exact-rational master LP, and certified it with dyadic snapping and interval arithmetic.
 
-**Search.** Structured algebraic families (equally spaced combs with quarter- and sixth-period offsets;
-Ramanujan-orbit bundles giving exactly integer rows) plateau at p = 0.793422 — an empirical floor we
-document as a negative result: such quantized-amplitude families cannot carry more than ≈ 20 % doubled
-mass against the CUE ramp, against ≈ 32 % at the optimum. Dropping the self-imposed rationality
-requirement — certification needs rigorous *enclosures*, not rational rows — and running column generation
-over unrestricted positions with a dual-guided pricing oracle produced the descent
+**Result.** p = 412129329181963620513241/604462909807282866662336 = 0.681810781927646, which is
+**below p₀ by 1.790554 × 10⁻⁵**. A lower witness is a *stronger* obstruction: it shows the method
+class is more limited than the published witness alone establishes.
 
-    0.859793 → 0.851778 → 0.795583 → 0.793422 (algebraic floor) → 0.749218 → 0.688373 → 0.684717 → 0.682435.
+| | published | this work |
+|---|---|---|
+| witness value p | 0.681828687463832 | **0.681810781927646** |
+| band tolerance τ | 3/10⁴⁰ | 1/10⁷ |
+| edge bound \|D(1)\| ≤ | 82395317/10⁸ | same constant (measured 0.823950881) |
+| downstream error constant | 2.5431315 × 10⁻⁶ | 2.5433268 × 10⁻⁶ |
+| certificate public? | no | **yes** |
 
-**Certification.** Final positions are snapped to a dyadic 2⁻²⁰ grid (cost 6 × 10⁻⁸), weights are exact
-rationals summing to 1, and every row is enclosed by 80-bit interval arithmetic with endpoints converted
-to exact fractions by binary mantissa/exponent decomposition. All 255 bands verify with worst deviation
-1.0 × 10⁻⁴ against a declared τ = 1/5000. The certified value is the exact rational
+The τ difference costs 1.95 × 10⁻¹⁰ in the error constant of the paper's Theorem 1′ — four orders of
+magnitude below the 1.79 × 10⁻⁵ by which the witness improves, so the improvement is not an artefact
+of the looser band. A second certificate at τ = 1/10⁴ gives a slightly deeper 0.681810419964139.
 
-    p = 51563325002067556741923 / 75557863725914335723648 = 0.682434924…,
+### 5.1 Kernel verification
 
-i.e. **6.06 × 10⁻⁴ above the paper's p₀** — a slightly weaker but fully public ceiling. Integer enclosures
-at scale K = 2⁶⁰ are emitted in `RowCertData` format in `witness/law_certified.txt`, ready for the
-repository's own kernel checker.
+The paper's `ceiling_law256` is stated for its own law, but is proved through a *generic*
+`ceiling_nearCUE`. We therefore emitted our law as a `RowCertData` record and instantiated that generic
+theorem on it. The normalisation transfers exactly: the paper's S(j) is our Σ_c w_c F_c(j) divided by
+256, so at K = 2⁶⁸ our interval-arithmetic enclosure integers are used *unchanged* — the integers Lean
+checks are the ones our certification produced, with no intervening rescaling.
 
-To our knowledge this is the only witness of this kind whose every ingredient is publicly available.
+```
+LawHD256_check     depends on axioms: [propext]
+lawHD256_rows      depends on axioms: [propext, Classical.choice, Quot.sound]
+ceiling_lawHD256   depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+`LawHD256_check` passes by `decide +kernel`, so Lean's kernel independently re-verified all 256 row
+enclosures and both edge-bound inequalities as integer arithmetic. The ceiling theorem carries the same
+three standard axioms as the paper's, with no `sorry` and no added hypotheses. Files in `witness/lean/`.
+
+Because the paper's certificate file is not distributed (finding 3, §4), its `EnclOK` hypothesis cannot
+be discharged by anyone outside the authors. This is, to our knowledge, the first kernel-verified
+bandwidth-one ceiling obtained from a certificate that is public.
+
+### 5.2 What this does and does not claim
+
+It is a **ceiling on a method class**, not a lower bound on the proportion of zeros on the critical
+line. It does **not** improve the paper's 67.25% result; that would require a better *certificate*,
+not a better *witness*. Its content is that the room remaining inside bandwidth-one methods is smaller
+than published, and that the bound is now independently checkable.
+
+### 5.3 One constraint that is easy to lose
+
+E[F(256)] is a free direction for lowering p, so a master LP that does not carry the edge bound will
+drift above it and produce a law that looks excellent and is inadmissible. This happened to us: a law
+at 0.681853248 had to be discarded and re-solved under the constraint, at a cost of 4.6 × 10⁻⁷. The
+edge bound is now carried in both the optimisation and the certification masters, and
+`witness/verify_law.py` checks it independently of either.
 
 ## 6. Adversarial review of our own work
 
@@ -184,8 +212,14 @@ marked the attacked claim contested.
   passed the axiom audit but their *fidelity* was outside our registered scope.
 - Mathlib's semantics for `riemannZeta`, `DirichletCharacter.LFunction` and `analyticOrderAt` are trusted
   as the declared base.
-- Our witness (§5) is weaker than the paper's by 6 × 10⁻⁴; column generation is a heuristic search, so the
-  law is not claimed optimal. Its *certification*, however, is rigorous and deterministic.
+- Our witness (§5) is *lower* than the paper's by 1.79 × 10⁻⁵, but column generation is a heuristic
+  search, so the law is not claimed optimal — only certified. A rigorous lower bound we derived
+  separately puts the true optimum of this formulation at or above 0.679278205285913 (exact rational,
+  certified by a squared-polynomial positivity argument that requires no solver to be trusted), so
+  between 0.6793 and our witness there may still be room we have not reached.
+- Our witness is certified at τ = 1/10⁷ rather than the paper's 3/10⁴⁰. This costs 1.95 × 10⁻¹⁰ in the
+  error constant of Theorem 1′ — four orders below the improvement — but the two statements are not
+  literally identical and the difference should be stated whenever they are compared.
 - The paper-side reference used during the fidelity audit was extracted from the PDF, which mangles some
   mathematics; every reconstructed item was resolved against the Lean source or the arXiv LaTeX source
   before use (`audit/paper-reference-extraction.md` carries the ambiguity ledger).
@@ -195,8 +229,14 @@ marked the attacked claim contested.
 We make no new claim about ζ. We do not claim the paper is correct beyond what a kernel and a careful
 reading establish: our audit shows the proofs check and the statements say what the paper says, not that
 the informal mathematics is free of conceptual error. We do not claim our witness is optimal, nor that the
-0.682 ceiling is wrong — our independent construction is consistent with it, and everything we found about
-the published enclosures (§4) indicates a genuine computation.
+published ceiling is wrong — our construction is consistent with it and strengthens it, and everything we
+found about the published enclosures (§4) indicates a genuine computation. In particular, a *lower*
+witness does not contradict the paper: p₀ is an upper bound on what the method class can prove, and any
+valid law below it simply tightens that bound.
+
+We also do not claim any improvement to the paper's 67.25% lower bound on the proportion of zeros simple
+and on the critical line. That is the opposite-facing result and is untouched by this work: a better
+witness constrains the method, a better *certificate* would be needed to prove more zeros.
 
 ## References
 
